@@ -1,0 +1,39 @@
+.export-buttons {
+    position: absolute;
+    top: -10px;
+    left: 900px;
+    right: 0;
+    display: flex;
+}
+
+/* Badge styling */
+
+
+  .export-buttons {
+  margin-top: 20px;
+}
+
+.export-btn {
+  margin-right: 10px;
+}
+
+.btn-medium {
+  padding: 10px 20px;
+  font-size: 14px;
+}
+
+.btn-light {
+  background-color: #f8f9fa;
+  color: #000;
+  border-color: #dee2e6;
+}
+
+.btn-light:hover {
+  background-color: #e2e6ea;
+  color: #000;
+}
+
+.button-container {
+  display: flex;
+}
+

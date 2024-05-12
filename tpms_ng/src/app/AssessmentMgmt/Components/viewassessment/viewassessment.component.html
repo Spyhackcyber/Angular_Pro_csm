@@ -1,0 +1,89 @@
+<div class="container">
+
+  <!-- Filter Section -->
+  <div class="filter-section">
+    <div class="row">
+      <div class="col-md-6 col-lg-3">
+        <div class="form-group">
+          <label for="assessmentDate">Assessment Date:</label>
+          <select id="assessmentDate" class="form-control" [(ngModel)]="assessmentDate" (change)="onDateSelected()">
+            <option *ngFor="let date of assessmentDateArr" [ngValue]="date">
+              {{ date | date:'dd-MMM-yyyy' }}
+            </option>
+          </select>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Accordion -->
+  <div class="accordion" id="accordionExample">
+    <div *ngFor="let dateRange of assessmentDateRanges" class="accordion-item">
+      <h2 class="accordion-header" [id]="'heading' + dateRange.fromDate">
+        <button class="accordion-button" type="button" data-bs-toggle="collapse" [attr.data-bs-target]="'#collapse' + dateRange.fromDate" aria-expanded="true" [attr.aria-controls]="'collapse' + dateRange.fromDate">
+          <h3><b>Assessment evaluations for activity conducted from {{ dateRange.fromDate | date:'dd-MMM-yyyy' }} to {{ dateRange.toDate | date:'dd-MMM-yyyy' }}</b></h3>
+        </button>
+      </h2>
+      <div [id]="'collapse' + dateRange.fromDate" class="accordion-collapse collapse show " [attr.aria-labelledby]="'heading' + dateRange.fromDate" data-bs-parent="#accordionExample">
+        <div class="accordion-body">
+          <div class="export-buttons text-right">
+            <button *ngIf="showAssessmentTable" (click)="exportToPDF(dateRange)" class="btn btn-icon export-btn" title="Download PDF">
+              <i class="fas fa-file-pdf fa-lg pdf-icon"></i>
+            </button>
+            <button *ngIf="showAssessmentTable" (click)="exportToExcel(dateRange)" class="btn btn-icon export-btn" title="Download Excel">
+              <i class="fas fa-file-excel fa-lg excel-icon"></i>
+            </button>
+          </div>
+
+          <div *ngIf="showAssessmentTable">
+            <table>
+              <thead>
+                <tr>
+                  <th>Sl.No</th>
+                  <th>Resource Name</th>
+                  <th>Platform Name</th>
+                  <th>Activity Name</th>
+                  <th>Total Marks</th>
+                  <th>Secured Marks</th>
+                  <th>Remarks</th>
+                  <th>Cumulative Percentage</th>
+                </tr>
+              </thead>
+            
+              <tbody>
+                <ng-container *ngFor="let group of getResourceGroups(dateRange.assessments) | paginate :{
+                  itemsPerPage : tableSize,
+                  currentPage : page ,
+                  totalItems: count
+                  }; let i = index">
+                  <tr *ngFor="let assessment of group.assessments; let j = index;">
+                    <ng-container *ngIf="j === 0">
+                      <td [attr.rowspan]="group.rowspan">{{ (page - 1) * tableSize + i + 1 }}</td> 
+                    </ng-container>
+                    <ng-container *ngIf="j === 0">
+                    <td [attr.rowspan]="group.rowspan">{{ assessment[0] }}</td> 
+                    <td [attr.rowspan]="group.rowspan">{{ assessment[1] }}</td> 
+                  </ng-container>
+                    <td>{{ assessment[2] }}</td>
+                    <td>{{ assessment[3] }}</td>
+                    <td>{{ assessment[4] }}</td>
+                    <td>{{ assessment[5] }}</td>
+                    <ng-container *ngIf="j === 0">
+                      <td [attr.rowspan]="group.rowspan" >{{ calculateCumulativePercentage(group.assessments).get(assessment[0])!==0? calculateCumulativePercentage(group.assessments).get(assessment[0])+"%":""}}</td>
+                    </ng-container>
+                    
+                  </tr>
+                </ng-container>
+              </tbody>
+              
+            </table>
+            <div class="d-flex justify-content-end mt-2" id="pagination">
+              <pagination-controls previousLabel="Prev" nextLabel="Next" (pageChange)= "getTableDataChange($event)"></pagination-controls>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,44 @@
+<div class="bootstrap-wrapper">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="card horizontal-card textured-card">
+                    <div class="row ustify-content-center">
+                      
+                        <!-- Right side: Login form -->
+                        <div class="gap-2 col-lg-6 mx-auto mt-4">
+                            
+                                <div class="text-center mb-4">
+                                    <img class="img-fluid" src="assets/login.png" alt="">
+                                    <h1 class="mt-3">Login Here!!</h1>
+                                </div>
+                                <div class="error-container" style="text-align: center">
+                                    <div *ngIf="errorMessage" class="error-message" style="color: red;">{{ errorMessage }}</div>
+                                </div>
+                                <form (keyup.enter)="onSubmit()">
+                                    <mat-form-field class="full-width">
+                                        <mat-label>Username</mat-label>
+                                        <input [(ngModel)]="credentials.username" required type="text" name="username" matInput class="input-with-hover">
+                                    </mat-form-field>
+                                    <mat-form-field class="full-width">
+                                        <mat-label>Password</mat-label>
+                                        <input [(ngModel)]="credentials.password" required [type]="hidePassword ? 'password' : 'text'" name="password" matInput class="input-with-hover"
+                                        (keydown.enter)="$event.preventDefault()">
+                                        <button mat-icon-button matSuffix (click)="togglePasswordVisibility()">
+                                            <mat-icon>{{ hidePassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+                                        </button>
+                                    </mat-form-field>
+                                    <div class="container text-center">
+                                        <button mat-raised-button color="primary" (click)="onSubmit()">Login</button> &nbsp;&nbsp;&nbsp;
+                                
+                                        <a routerLink="/forgotPassword">Forgot Your Password?</a>
+                                    </div>
+                                </form>
+                           
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,177 @@
+<div class="container">
+
+  <div class="row">
+    <!-- Date selection -->
+    <div class="form-group col-md-6">
+      <label>Activity From Date <span class="required">*</span></label>
+      <div class="input-group">
+        <input type="text" [(ngModel)]="selectedFromDate" class="form-control bold-black" bsDatepicker [bsConfig]="bsConfig" autocomplete="off" (ngModelChange)="setToDate()" #dp="bsDatepicker" required>
+        <div class="input-group-append">
+          <span class="input-group-text" (click)="openDatepicker()"><i class="material-icons">date_range</i></span>
+        </div>
+      </div>
+    </div>
+    <div class="form-group col-md-6">
+      <label>Activity To Date <span class="required">*</span></label>
+      <div class="input-group">
+        <input type="text" [(ngModel)]="selectedToDate" class="form-control bold-black" bsDatepicker [bsConfig]="bsConfig" autocomplete="off" (ngModelChange)="fetchAllocationData()" #dp1="bsDatepicker" required>
+        <div class="input-group-append">
+          <span class="input-group-text" (click)="openDatepicker1()"><i class="material-icons">date_range</i></span>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="row">
+    <!-- Activity selection -->
+    <div class="form-group col-md-6">
+      <label for="activity">Activity:</label>
+      <select id="activity" class="form-control" [(ngModel)]="activity.activityId" (change)="onActivitySelect($event)">
+        <option value="0">--select--</option>
+        <option *ngFor="let activity of activities" [value]="activity.activityId">{{ activity.activityName }}</option>
+      </select>
+    </div>
+
+    <!-- Session selection -->
+    <div class="form-group col-md-6">
+      <label for="session">Activity for:</label>
+      <select id="session" class="form-control" [(ngModel)]="selectedSession" (change)="setTime()">
+        <option value=0>--select--</option>
+        <option *ngIf="!activity.isProject" value=1>1st half</option>
+        <option *ngIf="!activity.isProject" value=2>2nd half</option>
+        <option value=3>Full day</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Activity timing -->
+  <div class="form-row row">
+    <div class="form-group col-md-6">
+      <label for="selectedActivityFrom">Activity from:</label>
+      <input type="time" class="form-control" [(ngModel)]="selectedActivityFrom" required>
+    </div>
+    <div class="form-group col-md-6">
+      <label for="selectedActivityTo">Activity to:</label>
+      <input type="time" class="form-control" [(ngModel)]="selectedActivityTo" required>
+    </div>
+  </div>
+
+  <!-- Dynamic table for activities -->
+  <table class="table mt-4" *ngIf="dynamicArray && dynamicArray.length > 0">
+    <thead class="thead-dark">
+      <tr>
+        <th>Activity</th>
+        <th>Session</th>
+        <th>Time</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let dynamic of dynamicArray; let i = index;">
+        <td>{{ dynamic.activity.activityName }}</td>
+        <td>{{ dynamic.activityFor==1?'1st half':(dynamic.activityFor==2?'2nd half':'Full day') }}</td>
+        <td>{{ dynamic.fromHours | convertTo12Hr }} &ndash; {{ dynamic.toHours | convertTo12Hr }}</td>
+        <td>
+          <button *ngIf="dynamic.activityAllocateId==allocateId" class="btn btn-primary btn-sm" (click)="edit(dynamic)"><i class="fas fa-undo"></i></button>
+          <button *ngIf="dynamic.activityAllocateId!=allocateId" class="btn btn-secondary btn-sm" (click)="edit(dynamic)"><i class="fas fa-edit"></i></button>
+          &nbsp; <button class="btn btn-danger btn-sm" (click)="remove(dynamic)"><i class="fas fa-trash"></i></button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- Select all resources checkbox -->
+  <div class="form-check mt-3">
+    <input type="checkbox" class="form-check-input custom-checkbox" id="selectAllResources" (change)="selectAllResources($event)">
+    <label class="form-check-label custom-label" for="selectAllResources">Resources</label>
+  </div>
+
+  <mat-accordion *ngIf="platforms">
+    <div *ngFor="let platform of platforms">
+      <mat-expansion-panel>
+        <mat-expansion-panel-header>
+          <mat-panel-title>
+            <div class="form-check">
+              <input type="checkbox" class="form-check-input" id="platform{{platform.platformId}}" [checked]="platform.selected" (change)="togglePlatform($event, platform)">
+              <label class="form-check-label" for="platform{{platform.platformId}}">
+                {{ platform.platform }}
+              </label>
+            </div>
+          </mat-panel-title>
+        </mat-expansion-panel-header>
+        <table class="table table-bordered">
+          <thead>
+            <tr>
+              <th>Resource Name</th>
+              <th>Resource Code</th>
+              <th>Designation</th>
+              <th>Years of experience</th>
+            </tr>
+          </thead>
+          <tbody>
+            <ng-container *ngFor="let resource of resources">
+              <tr *ngIf="resource.platform.trim() == platform.platform.trim()">
+                <td>
+                  <div class="form-check">
+                    <input type="checkbox" class="form-check-input" id="resource{{resource.resourceId}}" [checked]="resource.selected" (change)="toggle($event, resource.resourceId, platform.platformId)">
+                    <label class="form-check-label" for="resource{{resource.resourceId}}">
+                      {{ resource.resourceName }}
+                    </label>
+                  </div>
+                </td>
+                <td>{{resource.resourceCode}}</td>
+                <td>{{resource.designation}}</td>
+                <td>{{resource.experience}}</td>
+              </tr>
+            </ng-container>
+          </tbody>
+        </table>
+      </mat-expansion-panel>
+    </div>
+  </mat-accordion>
+
+  <div class="form-row row">
+    <div class="form-group col-md-1">
+      <!-- Submit button -->
+      <button class="btn btn-success mt-3" (click)="submitForm()">{{allocateId!=null?'Update':'Submit'}}</button>
+    </div>
+    <div class="form-group col-md-2" *ngIf="existingResources.length>0">
+      <button class="btn btn-primary mt-3" data-bs-toggle="modal" data-bs-target="#resourceModal">View details</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="resourceModal" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content"> <!-- Add 'bg-transparent' class to make modal content background transparent -->
+      <div class="modal-body">
+        <div>
+          <h4 class="mb-3 pb-2 border-bottom">Existing Resources</h4>
+           <table>
+            <thead>
+              <tr>
+                <th>Sl. No.</th>
+                <th>Code</th>
+                <th>Name</th>
+                <th>Platform</th>
+                <th>Allocated Activity</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let resource of existingResources; let i = index">
+                <td>{{ i + 1 }}</td>
+                <td>{{resource.resourceCode}}</td>
+                <td>{{resource.resourceName}}</td>
+                <td>{{resource.platform}}</td>
+                <td>{{resource.activityName}}</td>
+              </tr>
+            </tbody>
+        </table>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,73 @@
+
+<div class="card-body">
+<div class="container">
+  <div class="row">
+   <div class="col-md-12 text-right">
+    <div class="export-buttons">
+      <button class="btn btn-icon export-btn" title="Download PDF" (click)="exportToPDF()">
+        <i class="fas fa-file-pdf fa-lg pdf-icon"></i>
+      </button>
+      
+      <button class="btn btn-icon export-btn" title="Download Excel" (click)="exportToExcel()">
+        <i class="fas fa-file-excel fa-lg excel-icon"></i>
+      </button>
+    </div>
+  </div>
+</div>
+<div class="table-responsive mt-2" id="userTable">
+  <table>
+    <thead>
+       <tr>
+         <th>Sl No</th>
+         <th>User Full Name</th>
+         <th>User Name</th>
+         <th>Role</th>
+         <th>Email</th>
+         <th>Phone No</th>
+         <th>Status</th>
+         <th>Action</th>
+  
+       </tr>
+      </thead>
+      <tbody>
+
+        <tr *ngFor="let user of userDetails | paginate:{
+          itemsPerPage:pageSize,
+          currentPage:currentPage,
+          totalItems:totalElements
+        } let i = index;">
+              <td>{{ (currentPage - 1) * pageSize + i + 1 }}</td>
+              <td>{{user.userFullName}}</td>
+              <td>{{user.userName}}</td>
+              <td>{{user.role.roleName}}</td>
+              <td>{{user.email}}</td>
+              <td>{{user.phoneNo}}</td>
+              <td id="toggleButton" *ngIf="user.deletedFlag" class="status-inactive">InActive</td>
+              <td id="toggleButton" *ngIf="!user.deletedFlag" class="status-active">Active</td>
+              <td>
+                <div class="btn-group">
+                  <button *ngIf="!user.deletedFlag" type="button" class="btn btn-primary btn-sm" (click)="editUser(user.userId);"><i class="fas fa-edit"></i></button>
+                  <button *ngIf="user.deletedFlag" type="button" class="btn btn-primary btn-sm" disabled><i class="fas fa-edit"></i></button>
+                  &nbsp;
+              </div>
+              <div class="btn-group">
+                <button *ngIf="user.deletedFlag" class="btn btn-danger btn-sm" (click)="deleteUser(user.userId,!user.deletedFlag);"><i class="fa-solid fa-check"></i></button>
+                <button *ngIf="!user.deletedFlag" class="btn btn-danger btn-sm" (click)="deleteUser(user.userId,!user.deletedFlag);"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+              </td>
+              
+           </tr> 
+           <tr *ngIf="!userList">
+            <td colspan="8" class="text-center">
+                <span id="lblMessage" class="no-content">No record(s) found</span>
+            </td> 
+        </tr>
+      </tbody>
+    </table>
+  
+    <div class="d-flex justify-content-end mt-2" id="pagination" *ngIf="userList">
+      <pagination-controls previousLabel="Prev" nextLabel="Next"  (pageChange)="onPageChange($event)"></pagination-controls>
+    </div>
+</div>
+  </div>
+</div>

@@ -1,0 +1,13 @@
+.footer {
+    position: fixed; 
+    bottom: 0;
+    background-color: #dbdada; /* dirty white color */
+    width: 100%;
+    padding: 20px 0 0 ; 
+    margin-left: 250px;
+  }
+  .footer-bottom{
+     color:black; /* text color */
+     margin-left: 450px;
+  }
+  

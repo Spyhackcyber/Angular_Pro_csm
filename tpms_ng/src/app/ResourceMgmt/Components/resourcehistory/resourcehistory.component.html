@@ -1,0 +1,77 @@
+<div class="container mt-3">
+  
+  <div class="search-container mb-3">
+    <input type="text" class="form-control form-control-sm" placeholder="Search" [(ngModel)]="searchQuery" (input)="applySearch()">
+  </div>
+  <hr>
+  <div class="text-right mb-3" *ngIf="resourceHisDateWise.length!==0">
+    <div class="export-buttons">
+      <button class="btn btn-success btn-sm" (click)="exportToExcel()" title="Download Excel">
+        <i class="fas fa-file-excel"></i> Download Complete Report
+      </button>
+    </div>
+  </div>
+  <div *ngIf="resourceHisDateWise.length===0" class="text-center text-danger"><h2> Resources are not allocated. </h2></div>
+  
+  <!-- Accordion -->
+  <div class="accordion" id="accordionExample">
+    <div *ngFor="let dateRange of resourceHisDateWise; let accordionIndex = index" class="accordion-item">
+      <div class="accordion-header d-flex justify-content-between align-items-center" [id]="'heading' + dateRange.toDate">
+        <button class="accordion-button" type="button" data-bs-toggle="collapse" [attr.data-bs-target]="'#collapse' + dateRange.toDate" aria-expanded="true" [attr.aria-controls]="'collapse' + dateRange.toDate">
+          <h3><b>Resource For {{ dateRange.toDate | date:'dd-MMM-yyyy' }}</b></h3>
+        </button>
+        &nbsp;
+        <div class="download-container">
+          <button class="btn btn-download excel-icon" (click)="downloadExcel(dateRange.fileName)" title="Download Resource File">
+            <i class="fas fa-file-excel fa-lg"></i>
+          </button>
+        </div>
+      </div>
+      <div [id]="'collapse' + dateRange.toDate" class="accordion-collapse collapse " [attr.aria-labelledby]="'heading' + dateRange.toDate" data-bs-parent="#accordionExample">
+        <div class="accordion-body">
+          <div class="card-body">
+            <table>
+              <thead>
+                <tr>
+                  <th>Sl No</th>
+                  <th>Resource Code</th>
+                  <th>Resource Name</th>
+                  <th>Designation</th>
+                  <th>Platform</th>
+                  <th>Experience</th>
+                  <th>Engagement Plan</th>
+                  <th>Location</th>
+                  <th>Mobile</th>
+                  <th>Email</th>
+                </tr>
+              </thead>
+              <tbody>
+                <!-- <tr *ngFor="let record of dateRange.filteredResources | paginate: { itemsPerPage: dateRange.itemsPerPage, currentPage: dateRange.currentPage, totalItems: dateRange.count }; let i = index"> -->
+                <tr *ngFor="let record of dateRange.filteredResources; let i = index">
+                  <td>{{ (dateRange.currentPage - 1) * dateRange.itemsPerPage + i + 1 }}</td> 
+                  <td>{{ record[2] }}</td>
+                  <td>{{ record[1] }}</td>
+                  <td>{{ record[3] }}</td>
+                  <td>{{ record[4] }}</td>
+                  <td>{{ record[7] }}</td>
+                  <td>{{ record[6] }}</td>
+                  <td>{{ record[5] }}</td>
+                  <td>{{ record[10] }}</td>
+                  <td>{{ record[11] }}</td>
+                </tr>
+              </tbody>
+            </table>
+            <!-- <div class="d-flex justify-content-end mt-2" [id]="'pagination' + accordionIndex" [ngClass]="{'highlighted-pagination': selectedAccordionIndex === accordionIndex}">
+              <pagination-controls previousLabel="Prev" nextLabel="Next" 
+                                   (pageChange)="onPageChange($event, accordionIndex)">
+              </pagination-controls>
+          </div> -->
+          
+            
+            
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

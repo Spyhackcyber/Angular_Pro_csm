@@ -1,0 +1,15 @@
+.button-space {
+    margin-left: 10px; /* Adjust the value as needed for the desired space */
+    display: inline-block;
+}
+
+.required {
+    color: red;
+}
+
+.container {
+
+    margin-left: 20px;
+    padding: 20px;
+  }
+ 

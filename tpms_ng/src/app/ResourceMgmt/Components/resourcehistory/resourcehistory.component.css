@@ -1,0 +1,40 @@
+
+.export-buttons {
+    display: flex;
+    justify-content: flex-end;
+  }
+
+  .accordion-header {
+    padding: 10px 15px;
+  }
+  
+  .btn-download {
+    font-size: 25px;
+  }
+  .download-container {
+    background-color: whitesmoke; /* Choose your preferred color */
+    padding: 5px;
+    border-radius: 12px ;
+  }
+  .search-container input {
+    width: 250px; /* Adjust the width as needed */
+    height: auto;
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+  }
+
+  h1{
+    color: white;
+    padding: 0 1rem;
+    background: #fff;
+    min-height: 50px;
+    background: rgb(9, 10, 10);
+    margin: 0 ;
+    font-size: 25px;
+  }
+  
+  /* .pagination-controls button.active {
+    background-color: #007bff;
+    color: #fff;
+  } */
+  

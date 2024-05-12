@@ -1,0 +1,127 @@
+/* Add this CSS to your existing stylesheet */
+
+.wrapper {
+    display: flex;
+    align-items: stretch;
+  }
+  
+  #sidebar {
+    min-width: 250px;
+    max-width: 250px;
+    background-color: #37474f; /* Sidebar background color */
+    color: #fff; /* Text color */
+    transition: all 0.3s;
+  }
+  
+  #sidebar.active {
+    width: 80px; /* Adjust width for collapsed state */
+    overflow-x: hidden;
+  }
+  
+  #sidebar .sidebar-header {
+    padding: 20px;
+  }
+  
+  #sidebar ul.components {
+    padding: 20px 0;
+    border-bottom: 1px solid #4caf50; /* Sidebar border color */
+  }
+  
+  #sidebar ul.components li a {
+    padding: 10px 15px;
+    display: block;
+    color: #fff; /* Text color */
+  }
+  
+  #sidebar ul.components li a:hover {
+    background-color:white; /* Background color on hover */
+    color: #000; /* Text color on hover */
+  }
+  
+  #sidebar ul.components li.active > a,
+  #sidebar ul.components li a:hover {
+    background-color: white; /* Active item background color */
+  }
+  
+  #sidebar ul.components li.active > a {
+    color: #000; /* Active item text color */
+  }
+  
+  #content {
+    width: 100%;
+    padding: 20px;
+    transition: all 0.3s;
+  }
+  
+  @media (max-width: 768px) {
+    #sidebar {
+      width: 100px; /* Adjust width for smaller screens */
+    }
+    #sidebar.active {
+      width: 0;
+      overflow: hidden;
+    }
+    #content {
+      width: 100%;
+    }
+  }
+
+  .footer {
+
+    padding: 10px 15px;
+  }
+  /* Add this CSS to your stylesheet */
+#header {
+  position: fixed;
+  top: 0;
+  width: 100%;
+  z-index: 1000; /* Ensure the header stays on top of other content */
+}
+
+.wrapper {
+  position: relative; /* Ensure relative positioning for absolute/fixed positioning */
+  display: flex;
+  flex-direction: row; /* Horizontal layout */
+  height: 100%; /* Ensure full height */
+}
+
+#sidebar {
+   /* Fixed positioning */
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 250px; /* Set the width as needed */
+  background-color: #37474f;
+  color: #fff;
+  overflow-y: auto; /* Enable vertical scrolling */
+}
+
+
+
+.wrapper {
+    position: relative;
+    display: flex;
+}
+
+#sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 250px;
+    background-color: #37474f;
+    color: #fff;
+    overflow-y: auto;
+}
+
+#content {
+    flex-grow: 1;
+    padding-left: 250px;
+    padding-top: 0;
+    
+}
+
+.page-content {
+    margin: 50px auto; /* Adjust margin as needed */
+    max-width: 800px; /* Adjust maximum width as needed */
+}

@@ -1,0 +1,33 @@
+.list {
+  text-align: left;
+  max-width: 750px;
+  margin: auto;
+}
+
+.active {
+  color: green;
+}
+
+.inactive {
+  color: red;
+}
+
+h1{
+  color: white;
+  padding: 0 1rem;
+  background: #fff;
+  min-height: 50px;
+  background: rgb(9, 10, 10);
+  margin: 0 ;
+  font-size: 25px;
+}
+
+.card-container {
+  padding-left: 10px;
+}
+
+
+
+
+
+

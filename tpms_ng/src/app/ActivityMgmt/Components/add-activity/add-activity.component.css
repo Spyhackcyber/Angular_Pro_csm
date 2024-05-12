@@ -1,0 +1,19 @@
+.submit-form {
+  margin-left: 0;
+  margin-right: 0;
+  padding-left: 15px;
+  padding-right: 15px;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.required {
+  color: red;
+  margin-left: 5px; /* Adjust margin as needed */
+}
+
+
+
+
