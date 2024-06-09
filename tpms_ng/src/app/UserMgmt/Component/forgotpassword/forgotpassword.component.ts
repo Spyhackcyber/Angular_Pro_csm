@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, HostListener, OnInit } from '@angular/core';
 import { LoginService } from '../../Service/login.service';
 import { Router } from '@angular/router';
 
@@ -16,11 +16,15 @@ export class ForgotpasswordComponent implements OnInit{
   ngOnInit(): void {
     //throw new Error('Method not implemented.');
   }
+
+  @HostListener('window:popstate', ['$event'])
+    onPopState(event: any) {
+      this.router.navigate(['login']);  
+    }
+
   onSubmit() {
-     //alert(this.email)
     this.loginService.sendEmail(this.email).subscribe(
       (response) => {
-        debugger;
         console.log('Email sent successfully:', response);
         const responseObject = JSON.parse(response);
         const status = responseObject?.status;
@@ -32,7 +36,7 @@ export class ForgotpasswordComponent implements OnInit{
         this.router.navigate(['forgotPassword']);
         setTimeout(() => {
           this.errorMessage = '';
-        }, 1000);
+        }, 2000);
         }
         
       },

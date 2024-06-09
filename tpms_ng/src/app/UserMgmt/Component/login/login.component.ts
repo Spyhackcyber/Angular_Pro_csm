@@ -5,6 +5,7 @@ import { Router } from '@angular/router';
 import { AuthService } from 'src/app/auth.service';
 import Swal from 'sweetalert2';
 
+
 @Component({
   selector: 'app-login',
   templateUrl: './login.component.html',
@@ -34,7 +35,6 @@ export class LoginComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    //throw new Error('Method not implemented.');
     if (this.authService.isLoggedIn) {
       this.router.navigate(['/dashboard'])
       this.authService.logout();
@@ -49,7 +49,6 @@ export class LoginComponent implements OnInit {
         this.loginService.sendData(this.credentials).subscribe(
           (response: any) => {
             debugger;
-
             const responseObject = JSON.parse(response);
             const tokenTime = responseObject?.tokenTime;
             localStorage.setItem("tokenTime", tokenTime);
@@ -60,11 +59,13 @@ export class LoginComponent implements OnInit {
             const email = user?.email;
             const username = user?.userName;
             const userFullName = user?.userFullName;
+            const signature = user?.signature;
             localStorage.setItem("email", email);
             localStorage.setItem('userName', username);
             localStorage.setItem("userId", user?.userId);
+            localStorage.setItem("userId", user?.userId);
             localStorage.setItem("userFullName", userFullName);
-            localStorage.setItem("user", JSON.stringify(user));
+            localStorage.setItem("signature", signature);
             const receivedToken = localStorage.getItem('token');
             if (typeof receivedToken !== 'undefined' && receivedToken) {
               if (status === 'firstlogin') {
@@ -89,13 +90,22 @@ export class LoginComponent implements OnInit {
                 this.errorMessage = '';
               }, 2000);
             }
+
           },
+          //If backend application is not started
           (error) => {
-            this.router.navigate(['login']);
-            setTimeout(() => {
-              this.errorMessage = '';
-            }, 2000);
+            Swal.fire({
+              title: "Error!",
+              text: 'Internal server error,Please contact to admin !',
+              icon: "error",
+              confirmButtonText: "OK",
+            }).then(() => {
+              this.router.navigate(['login']);
+              setTimeout(() => {
+              }, 2000);
+            });
           }
+ 
         );
       } else {
         // Inform the user that password is required
@@ -112,9 +122,8 @@ export class LoginComponent implements OnInit {
       }, 2000);
     }
 
-
   }
-  // Add this method to your component class
+  // for hiding the password while entering in the field
   togglePasswordVisibility() {
     this.hidePassword = !this.hidePassword;
   }
