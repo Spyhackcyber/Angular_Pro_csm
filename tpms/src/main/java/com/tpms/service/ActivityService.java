@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.Map;
 
 import org.json.JSONArray;
-import org.springframework.http.ResponseEntity;
 
 import com.tpms.dto.PageResponse;
 import com.tpms.dto.ResourcePoolProjection;
@@ -16,7 +15,7 @@ import com.tpms.entity.ResourcePool;
 
 public interface ActivityService {
 	
-	public Activity SaveActivity(Activity activity);
+	public Activity saveActivity(Activity activity);
 	
 	public PageResponse<Activity> getAllActivities(Integer pageNumber,Integer pageSize);
 	
@@ -67,5 +66,7 @@ public interface ActivityService {
 	public PageResponse<Activity> searchActivity(Integer activityId, String activityPerson, Integer pageNumber, int pageSize);
 
 	public List<Activity> getActivityList();
+
+	public Integer getCount(String activityName);
 
 }

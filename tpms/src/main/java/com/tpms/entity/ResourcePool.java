@@ -1,14 +1,10 @@
 package com.tpms.entity;
 
 import java.time.LocalDate;
-import java.util.List;
-
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import jakarta.persistence.Transient;
 import lombok.Data;
@@ -19,16 +15,6 @@ import lombok.Data;
 public class ResourcePool {
 
 	public ResourcePool() {}
-	
-//	public ResourcePool(List<ActivityAllocation> activityAlloc) {
-//		this.activityAlloc = activityAlloc;
-//	}
-
-
-
-	public ResourcePool(ResourcePoolHistory employee, LocalDate allocationDate2) {
-		// TODO Auto-generated constructor stub
-	}
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)

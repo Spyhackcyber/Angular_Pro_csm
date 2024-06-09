@@ -52,7 +52,7 @@ import com.tpms.service.UserService;
         
         
         HttpHeaders httpHeaders = new HttpHeaders();
-        httpHeaders.add("Authorization", httpHeaders.get("Authorization").get(0));
+        httpHeaders.add("Authorization", "test");//httpHeaders.get("Authorization"));//.toString());//.get(0));
         httpHeaders.add("Content-Type", "application/json");
         
 

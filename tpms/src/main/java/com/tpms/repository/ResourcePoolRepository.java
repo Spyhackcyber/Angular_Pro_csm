@@ -10,7 +10,6 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-import com.tpms.dto.PageResponse;
 import com.tpms.dto.ResourcePoolProjection;
 import com.tpms.entity.ResourcePool;
 
@@ -23,14 +22,6 @@ public interface ResourcePoolRepository extends JpaRepository<ResourcePool, Inte
 	Optional<ResourcePool> findById(Integer resourceId);
 
 	List<ResourcePool> findByPlatform(String platform);
-
-//	@Query("SELECT r FROM ResourcePool r"
-//			+ " LEFT JOIN r.activityAlloc a ON a.activityFromDate=:activityDate AND (a is null or a.deletedFlag=false)"
-//			+ " LEFT JOIN a.details d ON (d is null or d.deletedFlag=false)"
-//			+ " LEFT JOIN Platform p ON r.platform=p.platform"
-//			+ " WHERE r.deletedFlag=0"
-//			+ " AND (p.platformId=:platformId OR :platformId=0)")
-//	List<ResourcePool> findAllActiveRecords(Date activityDate, Integer platformId);
 	
 	@Query("SELECT r.deletedFlag FROM ResourcePool r WHERE r.resourceId = :id")
 	Byte getDeletedFlagByRoleId(@Param("id") Integer id);
@@ -51,16 +42,29 @@ public interface ResourcePoolRepository extends JpaRepository<ResourcePool, Inte
 	@Query("FROM ResourcePool r WHERE r.deletedFlag=0")
 	List<ResourcePoolProjection> findAllWithoutRelatedEntity();
 
-	 @Query(value = "SELECT * FROM resource_pool rp WHERE rp.deletedFlag = 0", nativeQuery = true)
-	    Page<ResourcePool> findAllByDeletedFlag(Pageable pageable);
+    Page<ResourcePool> findByDeletedFlagFalse(Pageable pageable);
 	 
 	 @Query(value="select COUNT(*) from resource_pool_history where allocationDate= :allocationDate and deletedFlag=0 ",nativeQuery = true)
-		Integer findAllActiveResource(String allocationDate);
+	 Integer findAllActiveResource(String allocationDate);
 	 
-	 
-	 //Resource Report Repository
-	 @Query(value = "SELECT * FROM resource_pool rp", nativeQuery = true)
-	    Page<ResourcePool> findAllByDeletedUndeletedFlag(Pageable pageable); 
+
+	 @Query(value = "SELECT DISTINCT designation FROM resource_pool", nativeQuery = true)
+	List<String> findDesignationData();
+
+	 @Query(value = "SELECT DISTINCT location FROM resource_pool", nativeQuery = true)
+	List<String> findLocationData();
+
+	@Query("SELECT r FROM ResourcePool r WHERE r.designation = :designation OR r.location = :location OR r.platform = :platform")
+	List<ResourcePool> getFilterData(String designation, String location, String platform);
+
+	@Query(value = """
+			SELECT * FROM resource_pool
+			WHERE deletedFlag = 0
+			AND (designation = IF(:designation = '', designation,  :designation))
+			AND (platform = IF(:platform = '', platform,:platform))
+			AND (location = IF(:location = '', location, :location));
+			""", nativeQuery = true)
+	Page<ResourcePool> getsearchFilterData(String designation, String location, String platform, Pageable pageable);
 	 
 	 
 	 

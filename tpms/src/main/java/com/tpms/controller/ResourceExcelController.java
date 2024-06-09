@@ -11,18 +11,19 @@ import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.CellType;
+import org.apache.poi.ss.usermodel.DataFormat;
 import org.apache.poi.ss.usermodel.Font;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
@@ -47,6 +48,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tpms.dto.PageResponse;
 import com.tpms.entity.Platform;
 import com.tpms.entity.ResourcePool;
@@ -78,19 +80,33 @@ public class ResourceExcelController {
 
 	@Value("${file.directory}")
 	private String fileDirectory;
+	
+	@Value("${upload-dir}")
+	private String dirName;
 
 	@PostMapping("/upload")
-	public ResponseEntity<?> UploadExcel(@RequestParam("file") MultipartFile file,
+	public ResponseEntity<?> uploadExcel(@RequestParam("file") MultipartFile file,
 			@RequestParam("allocationDate") LocalDate allocationDate) throws IOException {
 		byte[] fileContent = file.getBytes();
 
 		createDirectoryIfNotExists(fileDirectory);
-		String renamedFileName = renameFile(fileContent,
-				file.getOriginalFilename().substring(file.getOriginalFilename().lastIndexOf('.')), allocationDate);
+		String ext = null;
+        // Using Optional API of JAVA 8 to Avoid Null Pointer Exception.
+		Optional<String> orgFilename = Optional.ofNullable(file.getOriginalFilename());
+
+		if (orgFilename.isPresent()) {
+			Optional<String> pathname = Optional
+					.ofNullable(orgFilename.get().substring(orgFilename.get().lastIndexOf('.')));
+
+			if (pathname.isPresent()) {
+				ext = String.valueOf(pathname.get());
+			}
+		}
+		String renamedFileName = renameFile(fileContent, ext, allocationDate);
 
 		processExcelData(file);
 
-		if (ExcelUtils.CheckExcelFormat(file)) {
+		if (ExcelUtils.checkExcelFormat(file)) {
 			this.excelempservice.save(file, allocationDate);
 			this.resourcepoolserviceimpl.save(file, allocationDate);
 			this.excelempservice.insertFile(renamedFileName, allocationDate);
@@ -101,23 +117,60 @@ public class ResourceExcelController {
 	}
 	
 	@PostMapping("/uploadCheck")
-	public String UploadCheckExcel(@RequestParam("file") MultipartFile file
-			) throws IOException {
-		
-		byte[] fileContent = file.getBytes();
+	public String uploadCheckExcel(@RequestParam("file") MultipartFile file) throws IOException {
 
-		if (ExcelUtils.CheckExcelFormat(file)) { 
-	 String Emp =ExcelUtils.CheckExcelinproperorder(file.getInputStream()); 
-			System.out.println(Emp);
-			if(Emp.equalsIgnoreCase("2")) {
-		return "2";	
-		  }}
-		  
-		return "1";
+		String response = ExcelUtils.checkExcelinproperorder(file.getInputStream());
+		if (response.equalsIgnoreCase("")) {
+			return "2";
+		}
+
+		return ExcelUtils.checkExcelinproperorder(file.getInputStream());
 	}
 	
 	
+	@PostMapping("/uploadCheckPhone")
+	public String uploadCheckExcelPhone(@RequestParam("file") MultipartFile file) throws IOException {
 
+		Optional<String> phone = Optional.ofNullable(ExcelUtils.checkExcelphoneDuplicacy(file));
+		if(phone.isPresent()) {
+		return phone.get().equalsIgnoreCase("Uniqueness") ? "Sucess" : phone.get();
+		}
+		return "Sucess";
+	}
+	
+	
+	@PostMapping("/uploadCheckEmail")
+	public String uploadCheckExcelEmail(@RequestParam("file") MultipartFile file) throws IOException {
+
+		Optional<String> email = Optional.ofNullable(ExcelUtils.checkExcelEmailDuplicacy(file));
+		if(email.isPresent()) {
+		return email.get().equalsIgnoreCase("Uniqueness") ? "Sucess" : email.get();
+		}
+		return "Sucess";
+	}
+	
+	@PostMapping("/uploadCheckResourceCode")
+	public String uploadCheckResourceCode(@RequestParam("file") MultipartFile file) throws IOException {
+
+		Optional<String> resourceCode = Optional.ofNullable(ExcelUtils.checkExcelresourceidDuplicacy(file));
+		if(resourceCode.isPresent()) {
+		return resourceCode.get().equalsIgnoreCase("Uniqueness") ? "Sucess" : resourceCode.get();
+		}
+		return "Sucess";
+	}
+
+	// Getting number duplicate phone numbers and Email in Excel
+	@PostMapping("/uploadCheckPhoneEmailCount")
+	public String countuploadCheckExcelPhoneEmail(@RequestParam("file") MultipartFile file) throws IOException {
+
+		Optional<Map<String, List<String>>> duphoneEmail = Optional
+				.ofNullable(ExcelUtils.checkExcelphoneEmailDuplicacy(file));
+
+		return new ObjectMapper().writeValueAsString(duphoneEmail.get());
+
+	}
+	
+	
 	private void createDirectoryIfNotExists(String directoryPath) throws IOException {
 		Path path = Paths.get(directoryPath);
 		if (!Files.exists(path)) {
@@ -183,19 +236,18 @@ public class ResourceExcelController {
 	}
 
 	@GetMapping("/emp/getResourceList")
-	public ResponseEntity<?> gettbl_resource_pool(@RequestParam(defaultValue = "1") Integer pageNumber){
-			
-		if(pageNumber==0) {
-			List<ResourcePool> resourceList=resourcepoolserviceimpl.getAllResources();
-			resourceList=resourceList.stream().sorted((a,b)->a.getResourceName().compareTo(b.getResourceName())).collect(Collectors.toList());
-		return ResponseEntity.ok(resourceList);
+	public ResponseEntity<?> getresourcepool(@RequestParam(defaultValue = "1") Integer pageNumber) {
+
+		if (pageNumber == 0) {
+			List<ResourcePool> resourceList = resourcepoolserviceimpl.getAllResources();
+			resourceList = resourceList.stream().sorted((a, b) -> a.getResourceName().compareTo(b.getResourceName()))
+					.collect(Collectors.toList());
+			return ResponseEntity.ok(resourceList);
 		}
-	PageResponse<ResourcePool> resourceList=resourcepoolserviceimpl.getAllEmploye(pageNumber,10);
-	 
-	return ResponseEntity.ok(resourceList);
+		PageResponse<ResourcePool> resourceList = resourcepoolserviceimpl.getAllEmploye(pageNumber, 10);
+
+		return ResponseEntity.ok(resourceList);
 	}
-	
-	
 
 	@GetMapping("/emp/getResourceDetailsWithFileName")
 	public List<Object[]> getResourceDetailsWithFileNameC() {
@@ -206,9 +258,8 @@ public class ResourceExcelController {
 	// Get Particular Resource From Talent Resource Pool
 	@GetMapping("/emp/talent/{id}")
 	public ResourcePool getTalentById(@PathVariable Integer id) {
-		System.out.println(id);
 		return resourcepoolserviceimpl.getTalentById(id);
-		// return new ResponseEntity<>(msg, HttpStatus.OK);
+
 	}
 
 	// For Updating Talent Pool Resource
@@ -277,55 +328,59 @@ public class ResourceExcelController {
 
 	@GetMapping("/downloadTemplate")
 	public ResponseEntity<InputStreamResource> downloadExcelTemplate() {
-		try {
+	   
+	    try {
 
-			Workbook workbook = new XSSFWorkbook();
-			Sheet sheet = workbook.createSheet("ResourceData");
+	    Workbook workbook = new XSSFWorkbook();
+	    Sheet sheet = workbook.createSheet("ResourceData");
 
-			Font boldFont = workbook.createFont();
-			boldFont.setBold(true);
-			boldFont.setFontName("Arial");
-			boldFont.setFontHeightInPoints((short) 12);
-			CellStyle boldStyle = workbook.createCellStyle();
-			boldStyle.setFont(boldFont);
+	    Font boldFont = workbook.createFont();
+	    boldFont.setBold(true);
+	    boldFont.setFontName("Arial");
+	    boldFont.setFontHeightInPoints((short) 12);
+	    CellStyle boldStyle = workbook.createCellStyle();
+	    boldStyle.setFont(boldFont);
+	    
 
-			Row headerRow = sheet.createRow(0);
-			String[] headers = { "SL No", "Employee Code", "Employee Name", "Designation", "Technology", "Email",
-					"PhoneNo", "Location", "Engagement Plan", "Exp" };
-			for (int i = 0; i < headers.length; i++) {
-				Cell cell = headerRow.createCell(i);
-				cell.setCellValue(headers[i]);
-				cell.setCellStyle(boldStyle);
-			}
+	    CellStyle textStyle = workbook.createCellStyle();
+	    DataFormat fmt=workbook.createDataFormat();
+	    textStyle.setDataFormat(fmt.getFormat("@"));
+	    String[] headers = { "SL No", "Employee Code", "Employee Name", "Designation", "Technology", "Email",
+	    "PhoneNo", "Location", "Engagement Plan", "Exp." };
+	    Row headerRow = sheet.createRow(0);
 
-			for (int i = 0; i < headers.length; i++) {
-				sheet.autoSizeColumn(i);
-			}
+	    for(int i=0;i<headers.length;i++) {
+	    Cell cell = headerRow.createCell(i);
+	    cell.setCellValue(headers[i]);
+	    cell.setCellStyle(boldStyle);
+	    sheet.autoSizeColumn(i);
+	    sheet.setDefaultColumnStyle(i, textStyle);
+	    }
+	   
 
-			ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-			workbook.write(outputStream);
-			byte[] templateBytes = outputStream.toByteArray();
+	    ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+	    workbook.write(outputStream);
+	    byte[] templateBytes = outputStream.toByteArray();
 
-			ByteArrayInputStream inputStream = new ByteArrayInputStream(templateBytes);
-			InputStreamResource resource = new InputStreamResource(inputStream);
+	    ByteArrayInputStream inputStream = new ByteArrayInputStream(templateBytes);
+	    InputStreamResource resource = new InputStreamResource(inputStream);
 
-			HttpHeaders headersResponse = new HttpHeaders();
-			headersResponse.setContentType(MediaType.APPLICATION_OCTET_STREAM);
-			headersResponse.setContentDispositionFormData("attachment", "template.xlsx");
+	    HttpHeaders headersResponse = new HttpHeaders();
+	    headersResponse.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+	    headersResponse.setContentDispositionFormData("attachment", "template.xlsx");
 
-			return ResponseEntity.ok().headers(headersResponse).body(resource);
-		} catch (IOException e) {
-			e.printStackTrace();
-			return ResponseEntity.status(500).build();
-		}
+	    return ResponseEntity.ok().headers(headersResponse).body(resource);
+	    } catch (IOException e) {
+	    e.printStackTrace();
+	    return ResponseEntity.status(500).build();
+	   
+	    }
 	}
-
 
 	// Duration count
 	@GetMapping("/emp/durations")
 	public ResponseEntity<?> getDurationDetails(@RequestParam("code") String resourceCode) throws JSONException {
 		JSONObject details = excelempservice.getDetails(resourceCode);
-		System.out.println(details);
 		return ResponseEntity.ok(details.toString());
 
 	}
@@ -340,8 +395,44 @@ public class ResourceExcelController {
 	@GetMapping("/getAllAllocationDate")
 	public ResponseEntity<?> getAllAllocationDate() {
 		List<Date> allocateDate = excelUploadHistoryRepository.findLatestDate();
-		//allocateDate=allocateDate.stream().sorted().collect(Collectors.toList());
+		// allocateDate=allocateDate.stream().sorted().collect(Collectors.toList());
 		return ResponseEntity.ok(allocateDate);
+	}
+	
+	@GetMapping("/getDesignation")
+	public List<String> getDesignaion(){
+		return  resourcepoolserviceimpl.getDesignation();
+	}
+	
+	@GetMapping("/getLocation")
+	public List<String> getLocation(){
+		return  resourcepoolserviceimpl.getLocation();
+	}
+	
+	
+	@GetMapping("/getPlatform")
+	public List<String> getPlatform() {
+		return resourcepoolserviceimpl.getPlatform();
+	}
+	
+	@GetMapping("/searchFilterData")
+	ResponseEntity<?> getsearchFilterData(@RequestParam(value = "designation", required = false) String designation,
+			@RequestParam(value = "location", required = false) String location,
+			@RequestParam(value = "platform", required = false) String platform,
+			@RequestParam(defaultValue = "1") Integer currentPage) {
+		PageResponse<ResourcePool> getsearchFilterData = null;
+		try {
+			if (location.equals("") && designation.equals("") && platform.equals("")) {
+				getsearchFilterData = resourcepoolserviceimpl.getAllEmploye(currentPage, 10);
+
+			} else {
+				getsearchFilterData = resourcepoolserviceimpl.getsearchFilterData(designation, location, platform,
+						currentPage, 10);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return ResponseEntity.ok().body(getsearchFilterData);
 	}
 
 }

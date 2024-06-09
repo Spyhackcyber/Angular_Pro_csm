@@ -2,7 +2,6 @@ package com.tpms.service.impl;
 
 import java.util.List;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -24,29 +23,29 @@ import com.tpms.service.UserService;
 @Service
 public class UserServiceImpl implements UserService{
 
-	@Autowired
-	UserRepository userRepository;
 	
-	@Autowired
-    private RoleRepository roleRepository;
+	private final UserRepository userRepository;
 	
-	@Autowired
-	private JwtHelper jwtHelper;
+    private final RoleRepository roleRepository;
 	
+	private final JwtHelper jwtHelper;
 	
-	@Autowired
-	private PasswordEncoder passwordEncoder;
+	private final PasswordEncoder passwordEncoder;
+	
+	public UserServiceImpl(UserRepository userRepository,RoleRepository roleRepository,
+			JwtHelper jwtHelper,PasswordEncoder passwordEncoder) {
+		this.userRepository=userRepository;
+		this.roleRepository=roleRepository;
+		this.jwtHelper=jwtHelper;
+		this.passwordEncoder=passwordEncoder;
+	}
+	
 	
 	@Override
 	public User saveUser(UserDto user, HttpHeaders httpHeaders) {
 		
 		
-	
-//		String authTokenWithBearer = httpHeaders.get("Authorization").get(0);
-//		String authToken = authTokenWithBearer.replace("Bearer", "");
-		
 		String userName = jwtHelper.getUsernameFromToken(httpHeaders.get("Authorization").get(0).replace("Bearer", ""));
-		System.err.println("------->>>>>>"+userName+"<<<<<<<<-------");
 		Integer creatorModifierUserID = userRepository.findByUserName(userName).getUserId();
 	
 		User u1 = new User();
@@ -54,7 +53,6 @@ public class UserServiceImpl implements UserService{
 		u1.setUserName(user.getUserName());
 		u1.setPhoneNo(user.getPhoneNo());
 		u1.setEmail(user.getEmail());
-		System.err.println(user.getUserId());
 		
 		//------- to update User -------
 		if(user.getUserId() != 0) {
@@ -62,12 +60,12 @@ public class UserServiceImpl implements UserService{
 				 u1.setPassword(existUser.getPassword());
                  u1.setIsFirstLogin(existUser.getIsFirstLogin());
 		         u1.setUserId(user.getUserId());
-		         u1.setUpdatedBy(creatorModifierUserID.intValue());
+		         u1.setUpdatedBy(creatorModifierUserID);
 		         u1.setCreatedBy(existUser.getCreatedBy());
 		}
 		
 		else {
-			u1.setCreatedBy(creatorModifierUserID.intValue());
+			u1.setCreatedBy(creatorModifierUserID);
 			u1.setIsFirstLogin(true);
 			u1.setPassword(passwordEncoder.encode(user.getPassword()));
 		}
@@ -89,13 +87,11 @@ public class UserServiceImpl implements UserService{
 	   
 	    Page<User> page = userRepository.findAll(pageable);
 	    List<User> userList=page.getContent();
-	    PageResponse<User> pageResponse=new PageResponse<User>();
+	    PageResponse<User> pageResponse=new PageResponse<>();
 	    pageResponse.setContent(userList);
 	    pageResponse.setTotalElements(page.getTotalElements());
 	    pageResponse.setTotalPages(page.getTotalPages());
 	    pageResponse.setPageSize(page.getSize());
-//	    pageResponse.setPageNumber(page.getNumber()+1);
-//		pageResponse.setLast(page.isLast());
 	    
 	    return pageResponse;
 	}
@@ -124,24 +120,17 @@ public class UserServiceImpl implements UserService{
 	}
 
 	@Override
-	public String getStatusOfDuplicacyCheck(String value,String colName) {
-		Integer count=0;
-		String result="not Exist";
-		
-		 count=switch(colName) {
-		   case "userName"-> userRepository.getDuplicateNameCount(value);
+	public String getStatusOfDuplicacyCheck(String value,String colName) {		
+		long count=switch(colName) {
+		   case "userName"-> userRepository.countByUserName(value);
 			 
-		   case "phoneNo"-> userRepository.getDuplicatePhnNoCount(value);
+		   case "phoneNo"-> userRepository.countByPhoneNo(value);
 			 
-		   case "email" ->  userRepository.getDuplicateEmailCount(value);
+		   case "email" ->  userRepository.countByEmail(value);
 			 
 		   default -> throw new IllegalStateException("Invalid Data!!");
         };
-        	
-		if(count>=1)
-			result="Exist";
-		
-		return result;
+        return count > 0 ? "Exist" : "Not Exist"; 
 	}
 
 	@Override
